@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Report a bug in the SafeNest Flutter SDK
+about: Report a bug in the Tuteliq Flutter SDK
 title: "[Bug] "
 labels: bug
 assignees: ""

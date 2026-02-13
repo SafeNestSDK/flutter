@@ -1,30 +1,30 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:safenest/safenest.dart';
+import 'package:tuteliq/tuteliq.dart';
 
 void main() {
   group('Client Initialization', () {
     test('creates client with valid API key', () {
-      final client = SafeNest(apiKey: 'test-api-key-12345');
+      final client = Tuteliq(apiKey: 'test-api-key-12345');
       expect(client, isNotNull);
       client.close();
     });
 
     test('throws on empty API key', () {
       expect(
-        () => SafeNest(apiKey: ''),
+        () => Tuteliq(apiKey: ''),
         throwsA(isA<ArgumentError>()),
       );
     });
 
     test('throws on short API key', () {
       expect(
-        () => SafeNest(apiKey: 'short'),
+        () => Tuteliq(apiKey: 'short'),
         throwsA(isA<ArgumentError>()),
       );
     });
 
     test('accepts custom options', () {
-      final client = SafeNest(
+      final client = Tuteliq(
         apiKey: 'test-api-key-12345',
         timeout: const Duration(seconds: 60),
         maxRetries: 5,
@@ -165,10 +165,10 @@ void main() {
   });
 
   group('Error Classes', () {
-    test('SafeNestException has message', () {
-      const error = SafeNestException('Test error');
+    test('TuteliqException has message', () {
+      const error = TuteliqException('Test error');
       expect(error.message, 'Test error');
-      expect(error.toString(), 'SafeNestException: Test error');
+      expect(error.toString(), 'TuteliqException: Test error');
     });
 
     test('AuthenticationException works', () {

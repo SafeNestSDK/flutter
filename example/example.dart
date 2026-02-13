@@ -1,8 +1,8 @@
-import 'package:safenest/safenest.dart';
+import 'package:tuteliq/tuteliq.dart';
 
 void main() async {
   // Initialize client
-  final client = SafeNest(apiKey: 'your-api-key');
+  final client = Tuteliq(apiKey: 'your-api-key');
 
   try {
     // Quick analysis
@@ -68,7 +68,7 @@ void main() async {
     print('Rate limited: ${e.message}');
   } on ValidationException catch (e) {
     print('Invalid input: ${e.message}');
-  } on SafeNestException catch (e) {
+  } on TuteliqException catch (e) {
     print('Error: ${e.message}');
   } finally {
     client.close();

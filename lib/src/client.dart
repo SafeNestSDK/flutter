@@ -7,30 +7,30 @@ import 'enums.dart';
 import 'errors.dart';
 import 'models.dart';
 
-/// SafeNest API client for child safety analysis.
+/// Tuteliq API client for child safety analysis.
 ///
 /// Example:
 /// ```dart
-/// final client = SafeNest(apiKey: 'your-api-key');
+/// final client = Tuteliq(apiKey: 'your-api-key');
 /// final result = await client.detectBullying('Some text to analyze');
 /// if (result.isBullying) {
 ///   print('Severity: ${result.severity}');
 /// }
 /// ```
-class SafeNest {
-  /// Creates a new SafeNest client.
+class Tuteliq {
+  /// Creates a new Tuteliq client.
   ///
-  /// [apiKey] is required and must be a valid SafeNest API key.
+  /// [apiKey] is required and must be a valid Tuteliq API key.
   /// [timeout] is the request timeout (default: 30 seconds).
   /// [maxRetries] is the number of retry attempts for transient failures.
   /// [retryDelay] is the initial retry delay.
-  /// [baseUrl] is the API base URL (default: https://api.safenest.dev).
-  SafeNest({
+  /// [baseUrl] is the API base URL (default: https://api.tuteliq.ai).
+  Tuteliq({
     required String apiKey,
     Duration timeout = const Duration(seconds: 30),
     int maxRetries = 3,
     Duration retryDelay = const Duration(seconds: 1),
-    String baseUrl = 'https://api.safenest.dev',
+    String baseUrl = 'https://api.tuteliq.ai',
   })  : _apiKey = apiKey,
         _timeout = timeout,
         _maxRetries = maxRetries,
@@ -343,6 +343,96 @@ class SafeNest {
     return AccountExportResult.fromJson(data);
   }
 
+  /// Record user consent (GDPR Article 7).
+  Future<ConsentActionResult> recordConsent(RecordConsentInput input) async {
+    final data = await _request('/api/v1/account/consent', {
+      'consent_type': input.consentType.value,
+      'version': input.version,
+    });
+    return ConsentActionResult.fromJson(data);
+  }
+
+  /// Get current consent status (GDPR Article 7).
+  Future<ConsentStatusResult> getConsentStatus({ConsentType? type}) async {
+    final query = type != null ? '?type=${type.value}' : '';
+    final data = await _requestWithMethod('GET', '/api/v1/account/consent$query');
+    return ConsentStatusResult.fromJson(data);
+  }
+
+  /// Withdraw consent (GDPR Article 7.3).
+  Future<ConsentActionResult> withdrawConsent(ConsentType type) async {
+    final data = await _requestWithMethod('DELETE', '/api/v1/account/consent/${type.value}');
+    return ConsentActionResult.fromJson(data);
+  }
+
+  /// Rectify user data (GDPR Article 16 — Right to Rectification).
+  Future<RectifyDataResult> rectifyData(RectifyDataInput input) async {
+    final data = await _requestWithMethod('PATCH', '/api/v1/account/data', body: {
+      'collection': input.collection,
+      'document_id': input.documentId,
+      'fields': input.fields,
+    });
+    return RectifyDataResult.fromJson(data);
+  }
+
+  /// Get audit logs (GDPR Article 15 — Right of Access).
+  Future<AuditLogsResult> getAuditLogs({AuditAction? action, int? limit}) async {
+    final params = <String>[];
+    if (action != null) params.add('action=${action.value}');
+    if (limit != null) params.add('limit=$limit');
+    final query = params.isNotEmpty ? '?${params.join('&')}' : '';
+    final data = await _requestWithMethod('GET', '/api/v1/account/audit-logs$query');
+    return AuditLogsResult.fromJson(data);
+  }
+
+  // ===========================================================================
+  // Breach Management (GDPR Article 33/34)
+  // ===========================================================================
+
+  /// Log a new data breach.
+  Future<LogBreachResult> logBreach(LogBreachInput input) async {
+    final data = await _request('/api/v1/admin/breach', {
+      'title': input.title,
+      'description': input.description,
+      'severity': input.severity.value,
+      'affected_user_ids': input.affectedUserIds,
+      'data_categories': input.dataCategories,
+      'reported_by': input.reportedBy,
+    });
+    return LogBreachResult.fromJson(data);
+  }
+
+  /// List data breaches.
+  Future<BreachListResult> listBreaches({BreachStatusValue? status, int? limit}) async {
+    final params = <String>[];
+    if (status != null) params.add('status=${status.value}');
+    if (limit != null) params.add('limit=$limit');
+    final query = params.isNotEmpty ? '?${params.join('&')}' : '';
+    final data = await _requestWithMethod('GET', '/api/v1/admin/breach$query');
+    return BreachListResult.fromJson(data);
+  }
+
+  /// Get a single breach by ID.
+  Future<BreachResult> getBreach(String id) async {
+    final data = await _requestWithMethod('GET', '/api/v1/admin/breach/$id');
+    return BreachResult.fromJson(data);
+  }
+
+  /// Update a breach's status.
+  Future<BreachResult> updateBreachStatus(String id, UpdateBreachInput input) async {
+    final body = <String, dynamic>{
+      'status': input.status.value,
+    };
+    if (input.notificationStatus != null) {
+      body['notification_status'] = input.notificationStatus!.value;
+    }
+    if (input.notes != null) {
+      body['notes'] = input.notes;
+    }
+    final data = await _requestWithMethod('PATCH', '/api/v1/admin/breach/$id', body: body);
+    return BreachResult.fromJson(data);
+  }
+
   // ===========================================================================
   // Private Methods
   // ===========================================================================
@@ -378,7 +468,7 @@ class SafeNest {
       }
     }
 
-    throw lastError ?? const SafeNestException('Request failed after retries');
+    throw lastError ?? const TuteliqException('Request failed after retries');
   }
 
   Future<Map<String, dynamic>> _performRequest(
@@ -400,6 +490,11 @@ class SafeNest {
           break;
         case 'GET':
           response = await _client.get(uri, headers: headers).timeout(_timeout);
+          break;
+        case 'PATCH':
+          response = await _client
+              .patch(uri, headers: headers, body: body != null ? jsonEncode(body) : null)
+              .timeout(_timeout);
           break;
         default:
           response = await _client
@@ -459,7 +554,7 @@ class SafeNest {
         if (response.statusCode >= 500) {
           throw ServerException(message, response.statusCode, details);
         }
-        throw SafeNestException(message, details);
+        throw TuteliqException(message, details);
     }
   }
 }

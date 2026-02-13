@@ -481,6 +481,200 @@ class AccountExportResult {
   final Map<String, dynamic> data;
 }
 
+// =============================================================================
+// Consent Management (GDPR Article 7)
+// =============================================================================
+
+/// Types of consent.
+enum ConsentType {
+  dataProcessing('data_processing'),
+  analytics('analytics'),
+  marketing('marketing'),
+  thirdPartySharing('third_party_sharing'),
+  childSafetyMonitoring('child_safety_monitoring');
+
+  const ConsentType(this.value);
+  final String value;
+}
+
+/// Consent status values.
+enum ConsentStatusValue {
+  granted('granted'),
+  withdrawn('withdrawn');
+
+  const ConsentStatusValue(this.value);
+  final String value;
+}
+
+/// Input for recording consent.
+class RecordConsentInput {
+  const RecordConsentInput({
+    required this.consentType,
+    required this.version,
+  });
+
+  final ConsentType consentType;
+  final String version;
+}
+
+/// A consent record.
+class ConsentRecord {
+  const ConsentRecord({
+    required this.id,
+    required this.userId,
+    required this.consentType,
+    required this.status,
+    required this.version,
+    required this.createdAt,
+  });
+
+  factory ConsentRecord.fromJson(Map<String, dynamic> json) {
+    return ConsentRecord(
+      id: json['id'] as String,
+      userId: json['user_id'] as String,
+      consentType: json['consent_type'] as String,
+      status: json['status'] as String,
+      version: json['version'] as String,
+      createdAt: json['created_at'] as String,
+    );
+  }
+
+  final String id;
+  final String userId;
+  final String consentType;
+  final String status;
+  final String version;
+  final String createdAt;
+}
+
+/// Result from consent record/withdraw operations.
+class ConsentActionResult {
+  const ConsentActionResult({
+    required this.message,
+    required this.consent,
+  });
+
+  factory ConsentActionResult.fromJson(Map<String, dynamic> json) {
+    return ConsentActionResult(
+      message: json['message'] as String,
+      consent: ConsentRecord.fromJson(json['consent'] as Map<String, dynamic>),
+    );
+  }
+
+  final String message;
+  final ConsentRecord consent;
+}
+
+/// Result from consent status query.
+class ConsentStatusResult {
+  const ConsentStatusResult({required this.consents});
+
+  factory ConsentStatusResult.fromJson(Map<String, dynamic> json) {
+    return ConsentStatusResult(
+      consents: (json['consents'] as List)
+          .map((c) => ConsentRecord.fromJson(c as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  final List<ConsentRecord> consents;
+}
+
+// =============================================================================
+// Right to Rectification (GDPR Article 16)
+// =============================================================================
+
+/// Input for data rectification.
+class RectifyDataInput {
+  const RectifyDataInput({
+    required this.collection,
+    required this.documentId,
+    required this.fields,
+  });
+
+  final String collection;
+  final String documentId;
+  final Map<String, dynamic> fields;
+}
+
+/// Result from data rectification.
+class RectifyDataResult {
+  const RectifyDataResult({
+    required this.message,
+    required this.updatedFields,
+  });
+
+  factory RectifyDataResult.fromJson(Map<String, dynamic> json) {
+    return RectifyDataResult(
+      message: json['message'] as String,
+      updatedFields: List<String>.from(json['updated_fields'] as List),
+    );
+  }
+
+  final String message;
+  final List<String> updatedFields;
+}
+
+// =============================================================================
+// Audit Logs (GDPR Article 15)
+// =============================================================================
+
+/// Types of auditable actions.
+enum AuditAction {
+  dataAccess('data_access'),
+  dataExport('data_export'),
+  dataDeletion('data_deletion'),
+  dataRectification('data_rectification'),
+  consentGranted('consent_granted'),
+  consentWithdrawn('consent_withdrawn'),
+  breachNotification('breach_notification');
+
+  const AuditAction(this.value);
+  final String value;
+}
+
+/// An audit log entry.
+class AuditLogEntry {
+  const AuditLogEntry({
+    required this.id,
+    required this.userId,
+    required this.action,
+    required this.createdAt,
+    this.details,
+  });
+
+  factory AuditLogEntry.fromJson(Map<String, dynamic> json) {
+    return AuditLogEntry(
+      id: json['id'] as String,
+      userId: json['user_id'] as String,
+      action: json['action'] as String,
+      createdAt: json['created_at'] as String,
+      details: json['details'] as Map<String, dynamic>?,
+    );
+  }
+
+  final String id;
+  final String userId;
+  final String action;
+  final String createdAt;
+  final Map<String, dynamic>? details;
+}
+
+/// Result from audit logs query.
+class AuditLogsResult {
+  const AuditLogsResult({required this.auditLogs});
+
+  factory AuditLogsResult.fromJson(Map<String, dynamic> json) {
+    return AuditLogsResult(
+      auditLogs: (json['audit_logs'] as List)
+          .map((l) => AuditLogEntry.fromJson(l as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  final List<AuditLogEntry> auditLogs;
+}
+
 /// API usage information.
 class Usage {
   const Usage({
@@ -492,4 +686,165 @@ class Usage {
   final int limit;
   final int used;
   final int remaining;
+}
+
+// =============================================================================
+// Breach Management (GDPR Article 33/34)
+// =============================================================================
+
+/// Breach severity levels.
+enum BreachSeverity {
+  low('low'),
+  medium('medium'),
+  high('high'),
+  critical('critical');
+
+  const BreachSeverity(this.value);
+  final String value;
+}
+
+/// Breach status values.
+enum BreachStatusValue {
+  detected('detected'),
+  investigating('investigating'),
+  contained('contained'),
+  reported('reported'),
+  resolved('resolved');
+
+  const BreachStatusValue(this.value);
+  final String value;
+}
+
+/// Breach notification status values.
+enum BreachNotificationStatusValue {
+  pending('pending'),
+  usersNotified('users_notified'),
+  dpaNotified('dpa_notified'),
+  completed('completed');
+
+  const BreachNotificationStatusValue(this.value);
+  final String value;
+}
+
+/// Input for logging a data breach.
+class LogBreachInput {
+  const LogBreachInput({
+    required this.title,
+    required this.description,
+    required this.severity,
+    required this.affectedUserIds,
+    required this.dataCategories,
+    required this.reportedBy,
+  });
+
+  final String title;
+  final String description;
+  final BreachSeverity severity;
+  final List<String> affectedUserIds;
+  final List<String> dataCategories;
+  final String reportedBy;
+}
+
+/// Input for updating a breach.
+class UpdateBreachInput {
+  const UpdateBreachInput({
+    required this.status,
+    this.notificationStatus,
+    this.notes,
+  });
+
+  final BreachStatusValue status;
+  final BreachNotificationStatusValue? notificationStatus;
+  final String? notes;
+}
+
+/// A breach record.
+class BreachRecord {
+  const BreachRecord({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.severity,
+    required this.status,
+    required this.notificationStatus,
+    required this.affectedUserIds,
+    required this.dataCategories,
+    required this.reportedBy,
+    required this.notificationDeadline,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  factory BreachRecord.fromJson(Map<String, dynamic> json) {
+    return BreachRecord(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      description: json['description'] as String,
+      severity: json['severity'] as String,
+      status: json['status'] as String,
+      notificationStatus: json['notification_status'] as String,
+      affectedUserIds: List<String>.from(json['affected_user_ids'] as List),
+      dataCategories: List<String>.from(json['data_categories'] as List),
+      reportedBy: json['reported_by'] as String,
+      notificationDeadline: json['notification_deadline'] as String,
+      createdAt: json['created_at'] as String,
+      updatedAt: json['updated_at'] as String,
+    );
+  }
+
+  final String id;
+  final String title;
+  final String description;
+  final String severity;
+  final String status;
+  final String notificationStatus;
+  final List<String> affectedUserIds;
+  final List<String> dataCategories;
+  final String reportedBy;
+  final String notificationDeadline;
+  final String createdAt;
+  final String updatedAt;
+}
+
+/// Result from logging a breach.
+class LogBreachResult {
+  const LogBreachResult({required this.message, required this.breach});
+
+  factory LogBreachResult.fromJson(Map<String, dynamic> json) {
+    return LogBreachResult(
+      message: json['message'] as String,
+      breach: BreachRecord.fromJson(json['breach'] as Map<String, dynamic>),
+    );
+  }
+
+  final String message;
+  final BreachRecord breach;
+}
+
+/// Result from listing breaches.
+class BreachListResult {
+  const BreachListResult({required this.breaches});
+
+  factory BreachListResult.fromJson(Map<String, dynamic> json) {
+    return BreachListResult(
+      breaches: (json['breaches'] as List)
+          .map((b) => BreachRecord.fromJson(b as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
+  final List<BreachRecord> breaches;
+}
+
+/// Result from getting/updating a breach.
+class BreachResult {
+  const BreachResult({required this.breach});
+
+  factory BreachResult.fromJson(Map<String, dynamic> json) {
+    return BreachResult(
+      breach: BreachRecord.fromJson(json['breach'] as Map<String, dynamic>),
+    );
+  }
+
+  final BreachRecord breach;
 }

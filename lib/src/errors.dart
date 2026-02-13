@@ -1,16 +1,16 @@
-/// Base exception for SafeNest SDK errors.
-class SafeNestException implements Exception {
-  const SafeNestException(this.message, [this.details]);
+/// Base exception for Tuteliq SDK errors.
+class TuteliqException implements Exception {
+  const TuteliqException(this.message, [this.details]);
 
   final String message;
   final dynamic details;
 
   @override
-  String toString() => 'SafeNestException: $message';
+  String toString() => 'TuteliqException: $message';
 }
 
 /// Thrown when API key is invalid or missing.
-class AuthenticationException extends SafeNestException {
+class AuthenticationException extends TuteliqException {
   const AuthenticationException(super.message, [super.details]);
 
   @override
@@ -18,7 +18,7 @@ class AuthenticationException extends SafeNestException {
 }
 
 /// Thrown when rate limit is exceeded.
-class RateLimitException extends SafeNestException {
+class RateLimitException extends TuteliqException {
   const RateLimitException(super.message, [super.details]);
 
   @override
@@ -26,7 +26,7 @@ class RateLimitException extends SafeNestException {
 }
 
 /// Thrown when request validation fails.
-class ValidationException extends SafeNestException {
+class ValidationException extends TuteliqException {
   const ValidationException(super.message, [super.details]);
 
   @override
@@ -34,7 +34,7 @@ class ValidationException extends SafeNestException {
 }
 
 /// Thrown when a resource is not found.
-class NotFoundException extends SafeNestException {
+class NotFoundException extends TuteliqException {
   const NotFoundException(super.message, [super.details]);
 
   @override
@@ -42,7 +42,7 @@ class NotFoundException extends SafeNestException {
 }
 
 /// Thrown when the server returns a 5xx error.
-class ServerException extends SafeNestException {
+class ServerException extends TuteliqException {
   const ServerException(super.message, this.statusCode, [super.details]);
 
   final int statusCode;
@@ -52,7 +52,7 @@ class ServerException extends SafeNestException {
 }
 
 /// Thrown when a request times out.
-class TimeoutException extends SafeNestException {
+class TimeoutException extends TuteliqException {
   const TimeoutException(super.message, [super.details]);
 
   @override
@@ -60,7 +60,7 @@ class TimeoutException extends SafeNestException {
 }
 
 /// Thrown when a network error occurs.
-class NetworkException extends SafeNestException {
+class NetworkException extends TuteliqException {
   const NetworkException(super.message, [super.details]);
 
   @override

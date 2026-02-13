@@ -1,10 +1,10 @@
-name: safenest
-description: Official Flutter/Dart SDK for SafeNest - AI-powered child safety API for content moderation, bullying detection, and grooming prevention.
-version: 1.1.0
-homepage: https://safenest.dev
-repository: https://github.com/SafeNestSDK/flutter
-issue_tracker: https://github.com/SafeNestSDK/flutter/issues
-documentation: https://api.safenest.dev/docs
+name: tuteliq
+description: Official Flutter/Dart SDK for Tuteliq - AI-powered child safety API for content moderation, bullying detection, and grooming prevention.
+version: 1.2.0
+homepage: https://tuteliq.ai
+repository: https://github.com/Tuteliq/flutter
+issue_tracker: https://github.com/Tuteliq/flutter/issues
+documentation: https://api.tuteliq.ai/docs
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

@@ -1,16 +1,16 @@
-/// Official Flutter/Dart SDK for SafeNest - AI-powered child safety API.
+/// Official Flutter/Dart SDK for Tuteliq - AI-powered child safety API.
 ///
-/// This library provides a type-safe client for the SafeNest API,
+/// This library provides a type-safe client for the Tuteliq API,
 /// enabling content moderation, bullying detection, grooming prevention,
 /// and more.
 ///
 /// ## Quick Start
 ///
 /// ```dart
-/// import 'package:safenest/safenest.dart';
+/// import 'package:tuteliq/tuteliq.dart';
 ///
 /// void main() async {
-///   final client = SafeNest(apiKey: 'your-api-key');
+///   final client = Tuteliq(apiKey: 'your-api-key');
 ///
 ///   final result = await client.analyze('Message to check');
 ///   if (result.riskLevel != RiskLevel.safe) {
@@ -21,7 +21,7 @@
 ///   client.close();
 /// }
 /// ```
-library safenest;
+library tuteliq;
 
 export 'src/client.dart';
 export 'src/enums.dart';
